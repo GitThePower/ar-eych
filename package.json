@@ -1,0 +1,26 @@
+{
+  "name": "ar-eych",
+  "version": "0.1.0",
+  "description": "rh",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GitThePower/ar-eych.git"
+  },
+  "author": "Henry Power",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GitThePower/ar-eych/issues"
+  },
+  "homepage": "https://github.com/GitThePower/ar-eych#readme",
+  "devDependencies": {
+    "jest": "^27.3.0"
+  },
+  "dependencies": {
+    "axios": "^0.23.0",
+    "uuid": "^8.3.2"
+  }
+}
