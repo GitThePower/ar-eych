@@ -17,15 +17,15 @@ class RH {
     /**
      * Constructor
      * @param {Object} credentials
+     *  @property {String} access_token
      *  @property {String} mfa_code
      *  @property {String} password
-     *  @property {String} token
      *  @property {String} username
      */
     constructor(credentials) {
+        if (credentials && credentials.hasOwnProperty('access_token')) this.access_token = credentials.access_token;
         if (credentials && credentials.hasOwnProperty('mfa_code')) this.mfa_code = credentials.mfa_code;
         if (credentials && credentials.hasOwnProperty('password')) this.credentials.password = credentials.password;
-        if (credentials && credentials.hasOwnProperty('token')) this.token = credentials.token;
         if (credentials && credentials.hasOwnProperty('username')) this.credentials.username = credentials.username;
 
         this.startUp();
