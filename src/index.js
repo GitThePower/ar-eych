@@ -68,34 +68,34 @@ class RH {
         if (this.credentials.username === config.DEFAULT_USERNAME &&
             this.credentials.password === config.DEFAULT_PASSWORD) {
             console.log(config.INVALID_USER_PW_ERROR);
+        } else {
+            const body = {
+                grant_type: 'password',
+                scope: 'internal',
+                expires_in: 86400,
+                ...this.credentials
+            };
+            if (!isInit && (this.mfa_code !== config.DEFAULT_MFA_CODE)) {
+                body.mfa_code = this.mfa_code;
+            }
+    
+            await this.request.post(config.LOGIN_URL, body)
+                .then((r) => {
+                    const { data } = r;
+                    if (!data || (!data.access_token && !data.mfa_required)) {
+                        console.error(config.LOGIN_MALFORMED_RESPONSE);
+                    } else if (data.mfa_required) {
+                        cb();
+                    } else {
+                        this.access_token = data.access_token;
+                        this.refresh_token = data.refresh_token;
+                        cb();
+                    }
+                })
+                .catch(() => {
+                    console.error(config.LOGIN_GENERIC_FAILURE_RESPONSE);
+                });
         }
-
-        const body = {
-            grant_type: 'password',
-            scope: 'internal',
-            expires_in: 86400,
-            ...this.credentials
-        };
-        if (!isInit && (this.mfa_code !== config.DEFAULT_MFA_CODE)) {
-            body.mfa_code = this.mfa_code;
-        }
-
-        await this.request.post(config.LOGIN_URL, body)
-            .then((r) => {
-                const { data } = r;
-                if (!data || (!data.access_token && !data.mfa_required)) {
-                    console.error(config.LOGIN_MALFORMED_RESPONSE);
-                } else if (data.mfa_required) {
-                    cb();
-                } else {
-                    this.access_token = data.access_token;
-                    this.refresh_token = data.refresh_token;
-                    cb();
-                }
-            })
-            .catch(() => {
-                console.error(config.LOGIN_GENERIC_FAILURE_RESPONSE);
-            });
     };
 
     /**
