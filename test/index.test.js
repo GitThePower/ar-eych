@@ -8,7 +8,7 @@ test.skip('Testing the rh api', async () => {
         const rh = new RH({
             username: config.rhUsername,
             password: config.rhPassword,
-            // mfa_code: '795378'
+            // mfa_code: '123456'
         });
         await sleep(3);
         const bitCoin = await rh.getCrypto('BTC');
