@@ -13,6 +13,9 @@ module.exports = {
     // URLS
     LOGIN_URL: 'oauth2/token/',
     ACCOUNTS_URL: 'accounts/',
+    CURRENCY_PAIRS_BASE_URL: 'https://nummus.robinhood.com/',
+    CURRENCY_PAIRS_URL: 'currency_pairs/',
+    CRYPTO_QUOTES_URL: 'marketdata/forex/quotes/',
 
     // Method Responses
     LOGIN_MFA_REQUIRED: 'MFA required to log in.',
@@ -25,5 +28,10 @@ module.exports = {
     LOGIN_GENERIC_FAILURE_RESPONSE: 'Login request failed.',
     LOGIN_MALFORMED_RESPONSE: 'Login response returned malformed data object.',
     UNREACHABLE_RESPONSE: 'This should not be called.',
-    ACCOUNTS_GENERIC_FAILURE_RESPONSE: 'Request to get account failed.'
+    ACCOUNTS_GENERIC_FAILURE_RESPONSE: 'Request to get account failed.',
+    GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE: 'Get currency pairs request failed.',
+    GET_CURRENCY_PAIRS_MALFORMED_RESPONSE: 'Get currency pairs response returned malformed data object.',
+    GET_CRYPTO_SYMBOL_NOT_FOUND: 'Get crypto did not find specified crypto currency ticker.',
+    GET_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Get crypto request failed.',
+    GET_CRYPTO_MALFORMED_RESPONSE: 'Get crypto response returned malformed data object.'
 }

@@ -135,6 +135,51 @@ class RH {
             console.error(config.INVALID_TOKEN_ERROR);
         }
     };
+
+    /**
+     * Gets information about crypto currency
+     * @param {String} symbol ticker of the crypto currency
+     */
+    getCrypto = async (symbol) => {
+        if (this.access_token !== config.DEFAULT_TOKEN) {
+            const currencyPairsInstance = this.request.create({
+                baseURL: config.CURRENCY_PAIRS_BASE_URL,
+                headers: {'Host': 'nummus.robinhood.com'}
+              });
+            const currencyPairs = await currencyPairsInstance.get(config.CURRENCY_PAIRS_URL)
+                .then((r) => {
+                    const { data } = r;
+                    if (!data || !data.results) {
+                        console.error(config.GET_CURRENCY_PAIRS_MALFORMED_RESPONSE);
+                    } else {
+                        return data.results;
+                    }
+                })
+                .catch(() => {
+                    console.error(config.GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE);
+                });
+
+            const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
+            if(currency) {
+                return this.request.get(config.CRYPTO_QUOTES_URL + currency.id + '/')
+                    .then((r) => {
+                        const { data } = r;
+                        if (!data) {
+                            console.error(config.GET_CRYPTO_MALFORMED_RESPONSE);
+                        } else {
+                            return data;
+                        }
+                    })
+                    .catch(() => {
+                        console.error(config.GET_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                    });
+            } else {
+                console.log(config.GET_CRYPTO_SYMBOL_NOT_FOUND);
+            }
+        } else {
+            console.error(config.INVALID_TOKEN_ERROR);
+        }
+    }
 }
 
 module.exports = RH
