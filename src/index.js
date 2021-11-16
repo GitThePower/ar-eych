@@ -175,22 +175,25 @@ class RH {
         if (this.access_token !== config.DEFAULT_TOKEN) {
             const currencyPairs = (currency_pairs) ? currency_pairs : await this.getCurrencyPairs();
 
-            const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
-            if (currency) {
-                return this.request.get(config.CRYPTO_QUOTES_URL + currency.id + '/')
-                    .then((r) => {
-                        const { data } = r;
-                        if (!data) {
-                            console.error(config.GET_CRYPTO_MALFORMED_RESPONSE);
-                        } else {
-                            return data;
-                        }
-                    })
-                    .catch(() => {
-                        console.error(config.GET_CRYPTO_GENERIC_FAILURE_RESPONSE);
-                    });
-            } else {
-                console.log(config.GET_CRYPTO_SYMBOL_NOT_FOUND);
+            if (currencyPairs) {
+                const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
+
+                if (currency) {
+                    return this.request.get(config.CRYPTO_QUOTES_URL + currency.id + '/')
+                        .then((r) => {
+                            const { data } = r;
+                            if (!data) {
+                                console.error(config.GET_CRYPTO_MALFORMED_RESPONSE);
+                            } else {
+                                return data;
+                            }
+                        })
+                        .catch(() => {
+                            console.error(config.GET_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                        });
+                } else {
+                    console.log(config.GET_CRYPTO_SYMBOL_NOT_FOUND);
+                }
             }
         } else {
             console.error(config.INVALID_TOKEN_ERROR);
