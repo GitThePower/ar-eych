@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 class RH {
     request = require('./request');
+    cryptoRequest = {}
     credentials = {
         client_id: config.DEFAULT_CLIENT_ID,
         device_token: uuidv4(),
@@ -27,6 +28,11 @@ class RH {
         if (credentials && credentials.hasOwnProperty('mfa_code')) this.mfa_code = credentials.mfa_code;
         if (credentials && credentials.hasOwnProperty('password')) this.credentials.password = credentials.password;
         if (credentials && credentials.hasOwnProperty('username')) this.credentials.username = credentials.username;
+
+        this.cryptoRequest = this.request.create({
+            baseURL: config.CURRENCY_PAIRS_BASE_URL,
+            headers: { 'Host': 'nummus.robinhood.com' }
+        });
 
         this.startUp();
     }
@@ -78,7 +84,7 @@ class RH {
             if (!isInit && (this.mfa_code !== config.DEFAULT_MFA_CODE)) {
                 body.mfa_code = this.mfa_code;
             }
-    
+
             await this.request.post(config.LOGIN_URL, body)
                 .then((r) => {
                     const { data } = r;
@@ -137,16 +143,12 @@ class RH {
     };
 
     /**
-     * Gets information about crypto currency
-     * @param {String} symbol ticker of the crypto currency
+     * Gets the crypto currency pairs
+     * @returns {Object} currency pairs object
      */
-    getCrypto = async (symbol) => {
+    getCurrencyPairs = () => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
-            const currencyPairsInstance = this.request.create({
-                baseURL: config.CURRENCY_PAIRS_BASE_URL,
-                headers: {'Host': 'nummus.robinhood.com'}
-              });
-            const currencyPairs = await currencyPairsInstance.get(config.CURRENCY_PAIRS_URL)
+            return this.cryptoRequest.get(config.CURRENCY_PAIRS_URL)
                 .then((r) => {
                     const { data } = r;
                     if (!data || !data.results) {
@@ -158,9 +160,23 @@ class RH {
                 .catch(() => {
                     console.error(config.GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE);
                 });
+        } else {
+            console.error(config.INVALID_TOKEN_ERROR);
+        }
+    }
+
+    /**
+     * Gets information about crypto currency
+     * @param {String} symbol ticker of the crypto currency
+     * @param {Object} currency_pairs pre-requested currency pairs
+     * @returns {Object} quote for specified crypto currency
+     */
+    getCryptoQuote = async (symbol, currency_pairs) => {
+        if (this.access_token !== config.DEFAULT_TOKEN) {
+            const currencyPairs = (currency_pairs) ? currency_pairs : await this.getCurrencyPairs();
 
             const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
-            if(currency) {
+            if (currency) {
                 return this.request.get(config.CRYPTO_QUOTES_URL + currency.id + '/')
                     .then((r) => {
                         const { data } = r;
