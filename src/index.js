@@ -48,7 +48,7 @@ class RH {
         if (this.access_token === config.DEFAULT_TOKEN &&
             this.credentials.username === config.DEFAULT_USERNAME &&
             this.credentials.password === config.DEFAULT_PASSWORD) {
-            console.log(config.INVALID_CREDENTIALS_ERROR);
+            console.error(config.INVALID_CREDENTIALS_ERROR);
         } else if (this.access_token === config.DEFAULT_TOKEN) {
             await this.logIn(config.IS_INIT, async () => {
                 if (this.mfa_code === config.DEFAULT_MFA_CODE) {
@@ -73,7 +73,7 @@ class RH {
     logIn = async (isInit, cb) => {
         if (this.credentials.username === config.DEFAULT_USERNAME &&
             this.credentials.password === config.DEFAULT_PASSWORD) {
-            console.log(config.INVALID_USER_PW_ERROR);
+            console.error(config.INVALID_USER_PW_ERROR);
         } else {
             const body = {
                 grant_type: 'password',
@@ -169,7 +169,7 @@ class RH {
                     }
                 }
             } else {
-                console.log(config.GET_CURRENCY_PAIRS_INVALID_SYMBOL);
+                console.error(config.GET_CURRENCY_PAIRS_INVALID_SYMBOL);
             }
         } else {
             console.error(config.INVALID_TOKEN_ERROR);
@@ -178,9 +178,9 @@ class RH {
 
     /**
      * Gets information about crypto currency
-     * @param {Object} options must contain at least one of the following properties
-     *  @property {String} symbol ticker of the crypto currency 
-     *  @property {String} currencyId pre-requested currency id
+     * @param {Object} options
+     *  @property {String} symbol ticker of the crypto currency [OPTIONAL IF currencyId is specified]
+     *  @property {String} currencyId pre-requested currency id [OPTIONAL IF symbol is specified]
      * @returns {Object} quote for specified crypto currency
      */
     getCryptoQuote = async (options) => {
@@ -194,19 +194,58 @@ class RH {
                         .then((r) => {
                             const { data } = r;
                             if (!data) {
-                                console.error(config.GET_CRYPTO_MALFORMED_RESPONSE);
+                                console.error(config.GET_CRYPTO_QUOTE_MALFORMED_RESPONSE);
                             } else {
                                 return data;
                             }
                         })
                         .catch(() => {
-                            console.error(config.GET_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                            console.error(config.GET_CRYPTO_QUOTE_GENERIC_FAILURE_RESPONSE);
                         });
                 } else {
-                    console.error(config.GET_CRYPTO_INVALID_ID);
+                    console.error(config.GET_CRYPTO_QUOTE_INVALID_ID);
                 }
             } else {
-                console.error(config.GET_CRYPTO_INVALID_OPTIONS);
+                console.error(config.GET_CRYPTO_QUOTE_INVALID_OPTIONS);
+            }
+        } else {
+            console.error(config.INVALID_TOKEN_ERROR);
+        }
+    }
+
+    /**
+     * Places an order for crypto currency
+     * @param {Object} options
+     *  @property {String} symbol ticker of the crypto currency [OPTIONAL IF currencyId is specified]
+     *  @property {String} currencyId pre-requested currency id [OPTIONAL IF symbol is specified]
+     *  @property {Number} price desired price at which to place the order
+     *  @property {Number} quantity units of crypto currency to transact with
+     *  @property {String} side 'buy' or 'sell' (Possibly more, needs more research)
+     *  @property {String} time_in_force 'gtc' or 'gfd' (Possibly more, needs more research)
+     *  @property {String} type 'market' or 'limit' (Possibly more, needs more research)
+     */
+    orderCrypto = async (options) => {
+        if (this.access_token !== config.DEFAULT_TOKEN) {
+            if (options && (options.symbol || options.currencyId) && options.price &&
+                options.quantity && options.side && options.time_in_force && options.type) {
+                const { symbol, currencyId, ...body } = options;
+                const id = (currencyId) ? currencyId : await this.getCurrencyId(symbol);
+
+                if (id) {
+                    body.account = this.account;
+                    body.ref_id = uuidv4();
+                    return this.cryptoRequest.post(config.ORDERS_URL + id + '/', body)
+                        .then(() => {
+                            console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
+                        })
+                        .catch(() => {
+                            console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                        });
+                } else {
+                    console.error(config.ORDER_CRYPTO_INVALID_ID);
+                }
+            } else {
+                console.error(config.ORDER_CRYPTO_INVALID_OPTIONS);
             }
         } else {
             console.error(config.INVALID_TOKEN_ERROR);

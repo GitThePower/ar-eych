@@ -16,10 +16,12 @@ module.exports = {
     CURRENCY_PAIRS_BASE_URL: 'https://nummus.robinhood.com/',
     CURRENCY_PAIRS_URL: 'currency_pairs/',
     CRYPTO_QUOTES_URL: 'marketdata/forex/quotes/',
+    ORDERS_URL: 'orders/',
 
     // Method Responses
     LOGIN_MFA_REQUIRED: 'MFA required to log in.',
     ACCOUNTS_DOES_NOT_EXIST: 'Response did not return an account.',
+    ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE: 'Order crypto succeeded.',
 
     // Method Error Responses
     INVALID_CREDENTIALS_ERROR: 'Invalid credentials. Token or username+password required.',
@@ -32,8 +34,11 @@ module.exports = {
     GET_CURRENCY_ID_INVALID_SYMBOL: 'Get currency id did not receive a symbol.',
     GET_CURRENCY_ID_GENERIC_FAILURE_RESPONSE: 'Get currency id request failed.',
     GET_CURRENCY_ID_MALFORMED_RESPONSE: 'Get currency id response returned malformed data object.',
-    GET_CRYPTO_INVALID_OPTIONS: 'Get crypto did not receive valid options.',
-    GET_CRYPTO_INVALID_ID: 'Get crypto did not receive a valid currency id.',
-    GET_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Get crypto request failed.',
-    GET_CRYPTO_MALFORMED_RESPONSE: 'Get crypto response returned malformed data object.'
+    GET_CRYPTO_QUOTE_INVALID_OPTIONS: 'Get crypto quote did not receive valid options.',
+    GET_CRYPTO_QUOTE_INVALID_ID: 'Get crypto quote did not receive a valid currency id.',
+    GET_CRYPTO_QUOTE_GENERIC_FAILURE_RESPONSE: 'Get crypto quote request failed.',
+    GET_CRYPTO_QUOTE_MALFORMED_RESPONSE: 'Get crypto quote response returned malformed data object.',
+    ORDER_CRYPTO_INVALID_OPTIONS: 'Order crypto did not receive valid options.',
+    ORDER_CRYPTO_INVALID_ID: 'Order crypto did not receive a valid currency id.',
+    ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Order crypto request failed.'
 }
