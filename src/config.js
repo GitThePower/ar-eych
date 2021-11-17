@@ -29,9 +29,11 @@ module.exports = {
     LOGIN_MALFORMED_RESPONSE: 'Login response returned malformed data object.',
     UNREACHABLE_RESPONSE: 'This should not be called.',
     ACCOUNTS_GENERIC_FAILURE_RESPONSE: 'Request to get account failed.',
-    GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE: 'Get currency pairs request failed.',
-    GET_CURRENCY_PAIRS_MALFORMED_RESPONSE: 'Get currency pairs response returned malformed data object.',
-    GET_CRYPTO_SYMBOL_NOT_FOUND: 'Get crypto did not find specified crypto currency ticker.',
+    GET_CURRENCY_ID_INVALID_SYMBOL: 'Get currency id did not receive a symbol.',
+    GET_CURRENCY_ID_GENERIC_FAILURE_RESPONSE: 'Get currency id request failed.',
+    GET_CURRENCY_ID_MALFORMED_RESPONSE: 'Get currency id response returned malformed data object.',
+    GET_CRYPTO_INVALID_OPTIONS: 'Get crypto did not receive valid options.',
+    GET_CRYPTO_INVALID_ID: 'Get crypto did not receive a valid currency id.',
     GET_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Get crypto request failed.',
     GET_CRYPTO_MALFORMED_RESPONSE: 'Get crypto response returned malformed data object.'
 }

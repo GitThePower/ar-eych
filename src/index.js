@@ -144,22 +144,33 @@ class RH {
 
     /**
      * Gets the crypto currency pairs
+     * @param {String} symbol ticker of the crypto currency
      * @returns {Object} currency pairs object
      */
-    getCurrencyPairs = () => {
+    getCurrencyId = async (symbol) => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
-            return this.cryptoRequest.get(config.CURRENCY_PAIRS_URL)
-                .then((r) => {
-                    const { data } = r;
-                    if (!data || !data.results) {
-                        console.error(config.GET_CURRENCY_PAIRS_MALFORMED_RESPONSE);
-                    } else {
-                        return data.results;
+            if (symbol) {
+                const currencyPairs = await this.cryptoRequest.get(config.CURRENCY_PAIRS_URL)
+                    .then((r) => {
+                        const { data } = r;
+                        if (!data || !data.results) {
+                            console.error(config.GET_CURRENCY_PAIRS_MALFORMED_RESPONSE);
+                        } else {
+                            return data.results;
+                        }
+                    })
+                    .catch(() => {
+                        console.error(config.GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE);
+                    });
+                if (currencyPairs) {
+                    const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
+                    if (currency) {
+                        return currency.id;
                     }
-                })
-                .catch(() => {
-                    console.error(config.GET_CURRENCY_PAIRS_GENERIC_FAILURE_RESPONSE);
-                });
+                }
+            } else {
+                console.log(config.GET_CURRENCY_PAIRS_INVALID_SYMBOL);
+            }
         } else {
             console.error(config.INVALID_TOKEN_ERROR);
         }
@@ -167,19 +178,19 @@ class RH {
 
     /**
      * Gets information about crypto currency
-     * @param {String} symbol ticker of the crypto currency
-     * @param {Object} currency_pairs pre-requested currency pairs
+     * @param {Object} options must contain at least one of the following properties
+     *  @property {String} symbol ticker of the crypto currency 
+     *  @property {String} currencyId pre-requested currency id
      * @returns {Object} quote for specified crypto currency
      */
-    getCryptoQuote = async (symbol, currency_pairs) => {
+    getCryptoQuote = async (options) => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
-            const currencyPairs = (currency_pairs) ? currency_pairs : await this.getCurrencyPairs();
+            if (options && (options.symbol || options.currencyId)) {
+                const { symbol, currencyId } = options;
+                const id = (currencyId) ? currencyId : await this.getCurrencyId(symbol);
 
-            if (currencyPairs) {
-                const currency = currencyPairs.find(a => a.asset_currency.code.toLowerCase() === symbol.toLowerCase());
-
-                if (currency) {
-                    return this.request.get(config.CRYPTO_QUOTES_URL + currency.id + '/')
+                if (id) {
+                    return this.request.get(config.CRYPTO_QUOTES_URL + id + '/')
                         .then((r) => {
                             const { data } = r;
                             if (!data) {
@@ -192,8 +203,10 @@ class RH {
                             console.error(config.GET_CRYPTO_GENERIC_FAILURE_RESPONSE);
                         });
                 } else {
-                    console.log(config.GET_CRYPTO_SYMBOL_NOT_FOUND);
+                    console.error(config.GET_CRYPTO_INVALID_ID);
                 }
+            } else {
+                console.error(config.GET_CRYPTO_INVALID_OPTIONS);
             }
         } else {
             console.error(config.INVALID_TOKEN_ERROR);

@@ -11,8 +11,8 @@ test.skip('Testing the rh api', async () => {
             // mfa_code: '123456'
         });
         await sleep(3);
-        const currency_pairs = await rh.getCurrencyPairs();
-        const bitCoin = await rh.getCryptoQuote('BTC', currency_pairs);
+        const currencyId = await rh.getCurrencyId('BTC');
+        const bitCoin = await rh.getCryptoQuote({currencyId});
         console.log(bitCoin);
     } catch (e) {
         console.error(JSON.stringify(e));
