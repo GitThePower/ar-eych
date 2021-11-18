@@ -4,7 +4,8 @@ module.exports = {
     DEFAULT_USERNAME: 'ifThisIsYourUsernameThenChangeYourUsername',
     DEFAULT_MFA_CODE: 'notAnActualMFACode',
     DEFAULT_TOKEN: 'notAnActualToken',
-    DEFAULT_ACCOUNT: null,
+    DEFAULT_ACCOUNT: 'notAnActualAccount',
+    DEFAULT_ACCOUNT_ID: 'notAnActualAccountId',
 
     // Conditions
     IS_INIT: true,
@@ -21,6 +22,7 @@ module.exports = {
     // Method Responses
     LOGIN_MFA_REQUIRED: 'MFA required to log in.',
     ACCOUNTS_DOES_NOT_EXIST: 'Response did not return an account.',
+    ACCOUNTS_ID_DOES_NOT_EXIST: 'Response did not return an account ID.',
     ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE: 'Order crypto succeeded.',
 
     // Method Error Responses
@@ -31,6 +33,7 @@ module.exports = {
     LOGIN_MALFORMED_RESPONSE: 'Login response returned malformed data object.',
     UNREACHABLE_RESPONSE: 'This should not be called.',
     ACCOUNTS_GENERIC_FAILURE_RESPONSE: 'Request to get account failed.',
+    ACCOUNTS_ID_GENERIC_FAILURE_RESPONSE: 'Request to get account ID failed.',
     GET_CURRENCY_ID_INVALID_SYMBOL: 'Get currency id did not receive a symbol.',
     GET_CURRENCY_ID_GENERIC_FAILURE_RESPONSE: 'Get currency id request failed.',
     GET_CURRENCY_ID_MALFORMED_RESPONSE: 'Get currency id response returned malformed data object.',

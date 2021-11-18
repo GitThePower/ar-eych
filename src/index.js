@@ -14,6 +14,7 @@ class RH {
     access_token = config.DEFAULT_TOKEN;
     refresh_token = config.DEFAULT_TOKEN;
     account = config.DEFAULT_ACCOUNT;
+    account_id = config.DEFAULT_ACCOUNT_ID;
 
     /**
      * Constructor
@@ -111,6 +112,7 @@ class RH {
     setAuth = () => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
             this.request.defaults.headers.common['Authorization'] = 'Bearer ' + this.access_token;
+            this.cryptoRequest.defaults.headers.common['Authorization'] = 'Bearer ' + this.access_token;
             return true;
         } else {
             return false;
@@ -136,6 +138,21 @@ class RH {
                 })
                 .catch(() => {
                     console.error(config.ACCOUNTS_GENERIC_FAILURE_RESPONSE);
+                });
+            await this.cryptoRequest.get(config.ACCOUNTS_URL)
+                .then((r) => {
+                    const { data } = r;
+
+                    if (data.results &&
+                        data.results instanceof Array &&
+                        data.results.length > 0) {
+                        this.account_id = data.results[0].id;
+                    } else {
+                        console.log(config.ACCOUNTS_ID_DOES_NOT_EXIST);
+                    }
+                })
+                .catch(() => {
+                    console.error(config.ACCOUNTS_ID_GENERIC_FAILURE_RESPONSE);
                 });
         } else {
             console.error(config.INVALID_TOKEN_ERROR);
@@ -218,8 +235,8 @@ class RH {
      * @param {Object} options
      *  @property {String} symbol ticker of the crypto currency [OPTIONAL IF currencyId is specified]
      *  @property {String} currencyId pre-requested currency id [OPTIONAL IF symbol is specified]
-     *  @property {Number} price desired price at which to place the order
-     *  @property {Number} quantity units of crypto currency to transact with
+     *  @property {String} price desired price at which to place the order (ex. 60000.00)
+     *  @property {String} quantity units of crypto currency to transact with (ex. 0.00000115)
      *  @property {String} side 'buy' or 'sell' (Possibly more, needs more research)
      *  @property {String} time_in_force 'gtc' or 'gfd' (Possibly more, needs more research)
      *  @property {String} type 'market' or 'limit' (Possibly more, needs more research)
@@ -232,9 +249,10 @@ class RH {
                 const id = (currencyId) ? currencyId : await this.getCurrencyId(symbol);
 
                 if (id) {
-                    body.account = this.account;
+                    body.account = this.account_id;
+                    body.currency_pair_id = id;
                     body.ref_id = uuidv4();
-                    return this.cryptoRequest.post(config.ORDERS_URL + id + '/', body)
+                    return this.cryptoRequest.post(config.ORDERS_URL, body)
                         .then(() => {
                             console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
                         })
