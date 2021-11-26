@@ -235,29 +235,45 @@ class RH {
      * @param {Object} options
      *  @property {String} symbol ticker of the crypto currency [OPTIONAL IF currencyId is specified]
      *  @property {String} currencyId pre-requested currency id [OPTIONAL IF symbol is specified]
-     *  @property {String} price desired price at which to place the order (ex. 60000.00)
-     *  @property {String} quantity units of crypto currency to transact with (ex. 0.00000115)
+     *  @property {Number} orderValue total cost of the order (ex. 1.00, may fail if amount is too small) [OPTIONAL IF quantity is specified]
+     *  @property {String} quantity units to transact with (ex. '0.00000115', requires 8 decimal places, may fail if amount 
+     *                              does not correspond w/ dollar value) [OPTIONAL IF orderValue is specified]
+     *  @property {String} currencyPrice desired price at which to place the order (ex. '60000.00') [OPTIONAL]
      *  @property {String} side 'buy' or 'sell' (Possibly more, needs more research)
      *  @property {String} time_in_force 'gtc' or 'gfd' (Possibly more, needs more research)
      *  @property {String} type 'market' or 'limit' (Possibly more, needs more research)
      */
     orderCrypto = async (options) => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
-            if (options && (options.symbol || options.currencyId) && options.price &&
-                options.quantity && options.side && options.time_in_force && options.type) {
-                const { symbol, currencyId, ...body } = options;
-                const id = (currencyId) ? currencyId : await this.getCurrencyId(symbol);
+            if (options && (options.symbol || options.currencyId) && (options.orderValue || options.quantity) && 
+                options.side && options.time_in_force && options.type) {
+                const currencyId = (options.currencyId) ? options.currencyId : await this.getCurrencyId(options.symbol);
+                const price = (options.currencyPrice) ? options.currencyPrice : (await this.getCryptoQuote({ currencyId })).ask_price;
+                let quantity;
+                if (options.orderValue) {
+                    quantity = `${Math.trunc((options.orderValue / parseInt(price, 10)) * 100000000) / 100000000}`;
+                } else {
+                    quantity = options.quantity;
+                }
 
-                if (id) {
-                    body.account = this.account_id;
-                    body.currency_pair_id = id;
-                    body.ref_id = uuidv4();
+                if (currencyId) {
+                    const body = {
+                        account: this.account_id,
+                        currency_pair_id: currencyId,
+                        price,
+                        quantity,
+                        ref_id: uuidv4(),
+                        side: options.side,
+                        time_in_force: options.time_in_force,
+                        type: options.type
+                    };
                     return this.cryptoRequest.post(config.ORDERS_URL, body)
                         .then(() => {
                             console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
                         })
-                        .catch(() => {
-                            console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                        .catch((e) => {
+                            console.error(JSON.stringify(e));
+                            // console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
                         });
                 } else {
                     console.error(config.ORDER_CRYPTO_INVALID_ID);
