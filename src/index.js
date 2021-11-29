@@ -271,9 +271,8 @@ class RH {
                         .then(() => {
                             console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
                         })
-                        .catch((e) => {
-                            console.error(JSON.stringify(e));
-                            // console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
+                        .catch(() => {
+                            console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
                         });
                 } else {
                     console.error(config.ORDER_CRYPTO_INVALID_ID);
@@ -284,6 +283,27 @@ class RH {
         } else {
             console.error(config.INVALID_TOKEN_ERROR);
         }
+    }
+
+    /**
+     * Helper function for making a market buy of crypto currency
+     * @param {Object} options
+     *  @property {String} symbol ticker of the crypto currency [OPTIONAL IF currencyId is specified]
+     *  @property {String} currencyId pre-requested currency id [OPTIONAL IF symbol is specified]
+     *  @property {Number} orderValue total cost of the order (ex. 1.00, may fail if amount is too small) [OPTIONAL IF quantity is specified]
+     *  @property {String} quantity units to transact with (ex. '0.00000115', requires 8 decimal places, may fail if amount 
+     *                              does not correspond w/ dollar value) [OPTIONAL IF orderValue is specified]
+     */
+     marketBuyCrypto = async (options) => {
+        await this.orderCrypto({
+            symbol: (options && options.symbol) ? options.symbol : null,
+            currencyId: (options && options.currencyId) ? options.currencyId : null,
+            orderValue: (options && options.orderValue) ? options.orderValue : null,
+            quantity: (options && options.quantity) ? options.quantity : null,
+            side: 'buy',
+            time_in_force: 'gtc',
+            type: 'market'
+        });
     }
 }
 
