@@ -21,7 +21,6 @@ test('Instantiating the rh object without credentials should trigger invalid cre
     mock = new MockAdapter(axios);
 
     const rh = new RH({});
-    await sleep(1);
 
     expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
     expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
@@ -84,7 +83,6 @@ test('Calling login without proper instantiation should trigger invalid User/PW'
     mock = new MockAdapter(axios);
 
     const rh = new RH({});
-    await sleep(1);
     await rh.logIn();
 
     expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
@@ -96,7 +94,6 @@ test('Calling setAuth without proper instantiation should do nothing', async () 
     mock = new MockAdapter(axios);
 
     const rh = new RH({});
-    await sleep(1);
     rh.setAuth();
 
     expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
@@ -108,7 +105,6 @@ test('Calling getSession without proper instantiation should trigger invalid tok
     mock = new MockAdapter(axios);
 
     const rh = new RH({});
-    await sleep(1);
     await rh.getSession();
 
     expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
