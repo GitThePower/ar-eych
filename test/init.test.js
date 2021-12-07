@@ -65,7 +65,7 @@ test('Instantiating the rh object with mfa_code should log in and get account in
     expect(rh.account_id).toBe(fakeId);
 });
 
-test('Instantiating the rh object with a token skip log in and get account info', async () => {
+test('Instantiating the rh object with a token should skip log in and get account info', async () => {
     mock = new MockAdapter(axios);
     mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
         .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] });
@@ -130,6 +130,62 @@ test('The login endpoint returning an unexpected response should trigger malform
     await sleep(1);
 
     expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
+    expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
+    expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
+});
+
+test('The login endpoint throwing an error should trigger generic failure', async () => {
+    mock = new MockAdapter(axios);
+    mock.onPost(baseURL + rhConfig.LOGIN_URL).reply(500, new Error('notExpected'))
+        .onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+        .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] });
+
+    const rh = new RH({
+        username: fakeUsername,
+        password: fakePassword,
+        mfa_code: fakeMfaCode
+    });
+    await sleep(1);
+
+    expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
+    expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
+    expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
+});
+
+test('The accounts endpoints returning an unexpected response should trigger account does not exist', async () => {
+    mock = new MockAdapter(axios);
+    mock.onPost(baseURL + rhConfig.LOGIN_URL).replyOnce(200, { mfa_required: 'true' })
+        .onPost(baseURL + rhConfig.LOGIN_URL).reply(200, { access_token: fakeToken })
+        .onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, 'notExpected')
+        .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, 'notExpected');
+
+    const rh = new RH({
+        username: fakeUsername,
+        password: fakePassword,
+        mfa_code: fakeMfaCode
+    });
+    await sleep(1);
+
+    expect(rh.access_token).toBe(fakeToken);
+    expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
+    expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
+});
+
+test('The accounts endpoints throwing an error should trigger generic failure', async () => {
+    mock = new MockAdapter(axios);
+    mock.onPost(baseURL + rhConfig.LOGIN_URL).replyOnce(200, { mfa_required: 'true' })
+        .onPost(baseURL + rhConfig.LOGIN_URL).reply(200, { access_token: fakeToken })
+        .onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(500, new Error('notExpected'))
+        .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(500, new Error('notExpected'));
+
+    const rh = new RH({
+        username: fakeUsername,
+        password: fakePassword,
+        mfa_code: fakeMfaCode
+    });
+    await sleep(1);
+
+    expect(rh.access_token).toBe(fakeToken);
     expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
     expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
 });
