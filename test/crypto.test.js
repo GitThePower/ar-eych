@@ -264,7 +264,6 @@ test('getCryptoQuote - should handle invalid access token', async () => {
 test('orderCrypto - should order crypto currency based on the given options', async () => {
   const symbol = fakeCurrencyPairs[0].asset_currency.code;
   const id = fakeCurrencyPairs[0].id;
-  const quantity = fakeQuantity
   mock = new MockAdapter(axios);
   mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
@@ -283,7 +282,7 @@ test('orderCrypto - should order crypto currency based on the given options', as
   
   await rh.orderCrypto({
     symbol,
-    quantity,
+    quantity: fakeQuantity,
     currencyPrice: fakeAskPrice,
     side: 'buy',
     time_in_force: 'gtc',
@@ -296,5 +295,173 @@ test('orderCrypto - should order crypto currency based on the given options', as
     side: 'sell',
     time_in_force: 'gfd',
     type: 'limit'
+  });
+});
+
+test('orderCrypto - should handle order crypto error', async () => {
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(500, new Error('unexpectedError'));
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+
+  await rh.orderCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue,
+    side: 'buy',
+    time_in_force: 'gtc',
+    type: 'market'
+  });
+});
+
+test('orderCrypto - should handle invalid currency id', async () => {
+  const symbol = 'KFC';
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+
+  await rh.orderCrypto({
+    symbol,
+    quantity: fakeQuantity,
+    currencyPrice: fakeAskPrice,
+    side: 'buy',
+    time_in_force: 'gtc',
+    type: 'market'
+  });
+});
+
+test('orderCrypto - should handle invalid options', async () => {
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+
+  // removing required parameter 'side'
+  await rh.orderCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue,
+    // side: 'buy',
+    time_in_force: 'gtc',
+    type: 'market'
+  });
+
+  // options === undefined
+  await rh.orderCrypto();
+});
+
+test('orderCrypto - should handle invalid options', async () => {
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+
+  const rh = new RH({});
+
+  expect(rh.access_token).toBe(rhConfig.DEFAULT_TOKEN);
+  expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
+  expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
+
+  await rh.orderCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue,
+    side: 'buy',
+    time_in_force: 'gtc',
+    type: 'market'
+  });
+});
+
+// marketBuyCrypto
+test('marketBuyCrypto - should buy crypto currency based on simplified options', async () => {
+  const symbol = fakeCurrencyPairs[0].asset_currency.code;
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+  
+  await rh.marketBuyCrypto({
+    symbol,
+    quantity: fakeQuantity,
+  });
+
+  await rh.marketBuyCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue
+  });
+});
+
+// marketSellCrypto
+test('marketSellCrypto - should sell crypto currency based on simplified options', async () => {
+  const symbol = fakeCurrencyPairs[0].asset_currency.code;
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+  
+  await rh.marketSellCrypto({
+    symbol,
+    quantity: fakeQuantity,
+  });
+
+  await rh.marketSellCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue
   });
 });
