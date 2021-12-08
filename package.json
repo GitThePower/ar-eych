@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/GitThePower/ar-eych#readme",
   "devDependencies": {
+    "axios-mock-adapter": "^1.20.0",
     "jest": "^27.3.0"
   },
   "dependencies": {
