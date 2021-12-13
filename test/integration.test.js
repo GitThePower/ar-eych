@@ -12,6 +12,10 @@ test.skip('Testing the rh api', async () => {
         });
         await sleep(3);
         console.log('AUTH: ', rh.access_token);
+        const account = await rh.getAccountDetails();
+        const { crypto, crypto_buying_power } = account;
+        console.log('CRYPTO EQUITY: ', crypto.equity.amount);
+        console.log('CRYPTO BUYING POWER: ', crypto_buying_power.amount);
         const currencyId = await rh.getCurrencyId('BTC');
         console.log('BTC ID: ', currencyId);
         // const options = {

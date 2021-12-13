@@ -6,6 +6,7 @@ module.exports = {
     DEFAULT_TOKEN: 'notAnActualToken',
     DEFAULT_ACCOUNT: 'notAnActualAccount',
     DEFAULT_ACCOUNT_ID: 'notAnActualAccountId',
+    DEFAULT_REQUEST: {},
 
     // Conditions
     IS_INIT: true,
@@ -18,6 +19,8 @@ module.exports = {
     CURRENCY_PAIRS_URL: 'currency_pairs/',
     CRYPTO_QUOTES_URL: 'marketdata/forex/quotes/',
     ORDERS_URL: 'orders/',
+    BONFIRE_BASE_URL: 'https://bonfire.robinhood.com/',
+    PHOENIX_ACCOUNTS_UNIFIED_URL: 'phoenix/accounts/unified/',
 
     // Method Responses
     LOGIN_MFA_REQUIRED: 'MFA required to log in.',
@@ -43,5 +46,7 @@ module.exports = {
     GET_CRYPTO_QUOTE_MALFORMED_RESPONSE: 'Get crypto quote response returned malformed data object.',
     ORDER_CRYPTO_INVALID_OPTIONS: 'Order crypto did not receive valid options.',
     ORDER_CRYPTO_INVALID_ID: 'Order crypto did not receive a valid currency id.',
-    ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Order crypto request failed.'
+    ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Order crypto request failed.',
+    GET_ACCOUNT_DETAILS_MALFORMED_RESPONSE: 'Get account details response returned malformed data object.',
+    GET_ACCOUNT_DETAILS_GENERIC_FAILURE_RESPONSE: 'Get account details request failed.'
 }
