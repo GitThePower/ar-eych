@@ -17,6 +17,29 @@ const fakeCurrencyPairs = [
 const fakeAskPrice = '1.00';
 const fakeOrderValue = 0.1;
 const fakeQuantity = '0.00000115';
+const fakeOrderCryptoResult = {
+  account_id: '00000000-0000-0000-0000-000000000000',
+  average_price: null,
+  cancel_url: 'https://nummus.robinhood.com/orders/ffffffff-ffff-ffff-ffff-ffffffffffff/cancel/',
+  created_at: '2020-2-29T12:00:00.000000-00:00',
+  cumulative_quantity: '0.000000000000000000',
+  currency_pair_id: '3d961844-d360-45fc-989b-f6fca761d511',
+  entered_price: '0.100000000000000000',
+  executions: [],
+  id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+  initiator_id: null,
+  initiator_type: null,
+  last_transaction_at: null,
+  price: '60000.000000000000000000',
+  quantity: '0.000001666666666666',
+  ref_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  rounded_executed_notional: '0.00',
+  side: 'buy',
+  state: 'unconfirmed',
+  time_in_force: 'gtc',
+  type: 'market',
+  updated_at: '2020-2-29T12:00:00.000000-00:00'
+};
 const currency_id_regex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
 let mock;
 
@@ -269,7 +292,7 @@ test('orderCrypto - should order crypto currency based on the given options', as
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
       .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
-      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
 
   const rh = new RH({
       access_token: fakeToken
@@ -280,7 +303,7 @@ test('orderCrypto - should order crypto currency based on the given options', as
   expect(rh.account).toBe(fakeUrl);
   expect(rh.account_id).toBe(fakeId);
   
-  await rh.orderCrypto({
+  const orderResult = await rh.orderCrypto({
     symbol,
     quantity: fakeQuantity,
     currencyPrice: fakeAskPrice,
@@ -288,14 +311,35 @@ test('orderCrypto - should order crypto currency based on the given options', as
     time_in_force: 'gtc',
     type: 'market'
   });
+  expect(orderResult).toBeTruthy();
+});
 
-  await rh.orderCrypto({
+test('orderCrypto - should handle order crypto response malformed', async () => {
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, null);
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+
+  const orderResult = await rh.orderCrypto({
     currencyId: id,
     orderValue: fakeOrderValue,
-    side: 'sell',
-    time_in_force: 'gfd',
-    type: 'limit'
+    side: 'buy',
+    time_in_force: 'gtc',
+    type: 'market'
   });
+  expect(orderResult).toBeUndefined();
 });
 
 test('orderCrypto - should handle order crypto error', async () => {
@@ -316,13 +360,14 @@ test('orderCrypto - should handle order crypto error', async () => {
   expect(rh.account).toBe(fakeUrl);
   expect(rh.account_id).toBe(fakeId);
 
-  await rh.orderCrypto({
+  const orderResult = await rh.orderCrypto({
     currencyId: id,
     orderValue: fakeOrderValue,
     side: 'buy',
     time_in_force: 'gtc',
     type: 'market'
   });
+  expect(orderResult).toBeUndefined();
 });
 
 test('orderCrypto - should handle invalid currency id', async () => {
@@ -333,7 +378,7 @@ test('orderCrypto - should handle invalid currency id', async () => {
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
       .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
-      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
 
   const rh = new RH({
       access_token: fakeToken
@@ -344,7 +389,7 @@ test('orderCrypto - should handle invalid currency id', async () => {
   expect(rh.account).toBe(fakeUrl);
   expect(rh.account_id).toBe(fakeId);
 
-  await rh.orderCrypto({
+  const orderResult = await rh.orderCrypto({
     symbol,
     quantity: fakeQuantity,
     currencyPrice: fakeAskPrice,
@@ -352,6 +397,7 @@ test('orderCrypto - should handle invalid currency id', async () => {
     time_in_force: 'gtc',
     type: 'market'
   });
+  expect(orderResult).toBeUndefined();
 });
 
 test('orderCrypto - should handle invalid options', async () => {
@@ -361,7 +407,7 @@ test('orderCrypto - should handle invalid options', async () => {
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
       .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
-      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
 
   const rh = new RH({
       access_token: fakeToken
@@ -373,16 +419,18 @@ test('orderCrypto - should handle invalid options', async () => {
   expect(rh.account_id).toBe(fakeId);
 
   // removing required parameter 'side'
-  await rh.orderCrypto({
+  let orderResult = await rh.orderCrypto({
     currencyId: id,
     orderValue: fakeOrderValue,
     // side: 'buy',
     time_in_force: 'gtc',
     type: 'market'
   });
+  expect(orderResult).toBeUndefined();
 
   // options === undefined
-  await rh.orderCrypto();
+  orderResult = await rh.orderCrypto();
+  expect(orderResult).toBeUndefined();
 });
 
 test('orderCrypto - should handle invalid options', async () => {
@@ -395,13 +443,14 @@ test('orderCrypto - should handle invalid options', async () => {
   expect(rh.account).toBe(rhConfig.DEFAULT_ACCOUNT);
   expect(rh.account_id).toBe(rhConfig.DEFAULT_ACCOUNT_ID);
 
-  await rh.orderCrypto({
+  let orderResult = await rh.orderCrypto({
     currencyId: id,
     orderValue: fakeOrderValue,
     side: 'buy',
     time_in_force: 'gtc',
     type: 'market'
   });
+  expect(orderResult).toBeUndefined();
 });
 
 // marketBuyCrypto
@@ -413,7 +462,7 @@ test('marketBuyCrypto - should buy crypto currency based on simplified options',
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
       .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
-      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
 
   const rh = new RH({
       access_token: fakeToken
@@ -424,15 +473,17 @@ test('marketBuyCrypto - should buy crypto currency based on simplified options',
   expect(rh.account).toBe(fakeUrl);
   expect(rh.account_id).toBe(fakeId);
   
-  await rh.marketBuyCrypto({
+  let orderResult = await rh.marketBuyCrypto({
     symbol,
     quantity: fakeQuantity,
   });
+  expect(orderResult).toBeTruthy();
 
-  await rh.marketBuyCrypto({
+  orderResult = await rh.marketBuyCrypto({
     currencyId: id,
     orderValue: fakeOrderValue
   });
+  expect(orderResult).toBeTruthy();
 });
 
 // marketSellCrypto
@@ -444,7 +495,7 @@ test('marketSellCrypto - should sell crypto currency based on simplified options
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
       .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
       .onGet(baseURL + rhConfig.CRYPTO_QUOTES_URL + id + '/').reply(200, { ask_price: fakeAskPrice })
-      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, 'success');
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
 
   const rh = new RH({
       access_token: fakeToken
@@ -455,13 +506,15 @@ test('marketSellCrypto - should sell crypto currency based on simplified options
   expect(rh.account).toBe(fakeUrl);
   expect(rh.account_id).toBe(fakeId);
   
-  await rh.marketSellCrypto({
+  let orderResult = await rh.marketSellCrypto({
     symbol,
     quantity: fakeQuantity,
   });
+  expect(orderResult).toBeTruthy();
 
-  await rh.marketSellCrypto({
+  orderResult = await rh.marketSellCrypto({
     currencyId: id,
     orderValue: fakeOrderValue
   });
+  expect(orderResult).toBeTruthy();
 });

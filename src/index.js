@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 
 class RH {
     request = require('./request');
-    cryptoRequest = {}
+    cryptoRequest = config.DEFAULT_REQUEST
+    bonfireRequest = config.DEFAULT_REQUEST
     credentials = {
         client_id: config.DEFAULT_CLIENT_ID,
         device_token: uuidv4(),
@@ -34,9 +35,17 @@ class RH {
             baseURL: config.CURRENCY_PAIRS_BASE_URL,
             headers: { 'Host': 'nummus.robinhood.com' }
         });
+        this.bonfireRequest = this.request.create({
+            baseURL: config.BONFIRE_BASE_URL,
+            headers: { 'Host': 'bonfire.robinhood.com' }
+        });
 
         this.startUp();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////// INIT FUNCTIONS //////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Starts up the API
@@ -113,6 +122,7 @@ class RH {
         if (this.access_token !== config.DEFAULT_TOKEN) {
             this.request.defaults.headers.common['Authorization'] = 'Bearer ' + this.access_token;
             this.cryptoRequest.defaults.headers.common['Authorization'] = 'Bearer ' + this.access_token;
+            this.bonfireRequest.defaults.headers.common['Authorization'] = 'Bearer ' + this.access_token;
             return true;
         } else {
             return false;
@@ -158,6 +168,10 @@ class RH {
             console.error(config.INVALID_TOKEN_ERROR);
         }
     };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////// CRYPTO FUNCTIONS /////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Gets the crypto currency pairs
@@ -240,12 +254,12 @@ class RH {
      *                              does not correspond w/ dollar value) [OPTIONAL IF orderValue is specified]
      *  @property {String} currencyPrice desired price at which to place the order (ex. '60000.00') [OPTIONAL]
      *  @property {String} side 'buy' or 'sell' (Possibly more, needs more research)
-     *  @property {String} time_in_force 'gtc' or 'gfd' (Possibly more, needs more research)
+     *  @property {String} time_in_force 'gtc' or 'gfd'
      *  @property {String} type 'market' or 'limit' (Possibly more, needs more research)
      */
     orderCrypto = async (options) => {
         if (this.access_token !== config.DEFAULT_TOKEN) {
-            if (options && (options.symbol || options.currencyId) && (options.orderValue || options.quantity) && 
+            if (options && (options.symbol || options.currencyId) && (options.orderValue || options.quantity) &&
                 options.side && options.time_in_force && options.type) {
                 const currencyId = (options.currencyId) ? options.currencyId : await this.getCurrencyId(options.symbol);
                 const price = (options.currencyPrice) ? options.currencyPrice : (await this.getCryptoQuote({ currencyId })).ask_price;
@@ -268,8 +282,13 @@ class RH {
                         type: options.type
                     };
                     return this.cryptoRequest.post(config.ORDERS_URL, body)
-                        .then(() => {
-                            console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
+                        .then((r) => {
+                            const { data } = r;
+                            if (!data) {
+                                console.log(config.ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE);
+                            } else {
+                                return data;
+                            }
                         })
                         .catch(() => {
                             console.error(config.ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE);
@@ -294,17 +313,15 @@ class RH {
      *  @property {String} quantity units to transact with (ex. '0.00000115', requires 8 decimal places, may fail if amount 
      *                              does not correspond w/ dollar value) [OPTIONAL IF orderValue is specified]
      */
-     marketBuyCrypto = async (options) => {
-        await this.orderCrypto({
-            symbol: (options && options.symbol) ? options.symbol : null,
-            currencyId: (options && options.currencyId) ? options.currencyId : null,
-            orderValue: (options && options.orderValue) ? options.orderValue : null,
-            quantity: (options && options.quantity) ? options.quantity : null,
-            side: 'buy',
-            time_in_force: 'gtc',
-            type: 'market'
-        });
-    }
+    marketBuyCrypto = async (options) => await this.orderCrypto({
+        symbol: (options && options.symbol) ? options.symbol : null,
+        currencyId: (options && options.currencyId) ? options.currencyId : null,
+        orderValue: (options && options.orderValue) ? options.orderValue : null,
+        quantity: (options && options.quantity) ? options.quantity : null,
+        side: 'buy',
+        time_in_force: 'gtc',
+        type: 'market'
+    });
 
     /**
      * Helper function for making a market sell of crypto currency
@@ -315,17 +332,39 @@ class RH {
      *  @property {String} quantity units to transact with (ex. '0.00000115', requires 8 decimal places, may fail if amount 
      *                              does not correspond w/ dollar value) [OPTIONAL IF orderValue is specified]
      */
-     marketSellCrypto = async (options) => {
-        await this.orderCrypto({
-            symbol: (options && options.symbol) ? options.symbol : null,
-            currencyId: (options && options.currencyId) ? options.currencyId : null,
-            orderValue: (options && options.orderValue) ? options.orderValue : null,
-            quantity: (options && options.quantity) ? options.quantity : null,
-            side: 'sell',
-            time_in_force: 'gtc',
-            type: 'market'
-        });
+    marketSellCrypto = async (options) => await this.orderCrypto({
+        symbol: (options && options.symbol) ? options.symbol : null,
+        currencyId: (options && options.currencyId) ? options.currencyId : null,
+        orderValue: (options && options.orderValue) ? options.orderValue : null,
+        quantity: (options && options.quantity) ? options.quantity : null,
+        side: 'sell',
+        time_in_force: 'gtc',
+        type: 'market'
+    });
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////// BONFIRE FUNCTIONS /////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    getAccountDetails = async () => {
+        if (this.access_token !== config.DEFAULT_TOKEN) {
+            return this.bonfireRequest.get(config.PHOENIX_ACCOUNTS_UNIFIED_URL)
+                .then((r) => {
+                    const { data } = r;
+                    if (!data) {
+                        console.error(config.GET_ACCOUNT_DETAILS_MALFORMED_RESPONSE);
+                    } else {
+                        return data;
+                    }
+                })
+                .catch(() => {
+                    console.error(config.GET_ACCOUNT_DETAILS_GENERIC_FAILURE_RESPONSE);
+                });
+        } else {
+            console.error(config.INVALID_TOKEN_ERROR);
+        }
     }
+
 }
 
 module.exports = RH
