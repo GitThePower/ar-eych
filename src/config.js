@@ -26,7 +26,7 @@ module.exports = {
     LOGIN_MFA_REQUIRED: 'MFA required to log in.',
     ACCOUNTS_DOES_NOT_EXIST: 'Response did not return an account.',
     ACCOUNTS_ID_DOES_NOT_EXIST: 'Response did not return an account ID.',
-    ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE: 'Order crypto succeeded.',
+    ORDER_CRYPTO_GENERIC_SUCCESS_RESPONSE: 'Order crypto succeeded. No additional data received.',
 
     // Method Error Responses
     INVALID_CREDENTIALS_ERROR: 'Invalid credentials. Token or username+password required.',
