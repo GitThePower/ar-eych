@@ -518,3 +518,89 @@ test('marketSellCrypto - should sell crypto currency based on simplified options
   });
   expect(orderResult).toBeTruthy();
 });
+
+// limitBuyCrypto
+test('limitBuyCrypto - should buy crypto currency based on simplified options', async () => {
+  const symbol = fakeCurrencyPairs[0].asset_currency.code;
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+  
+  let orderResult = await rh.limitBuyCrypto({
+    currencyPrice: fakeAskPrice,
+    symbol,
+    quantity: fakeQuantity,
+  });
+  expect(orderResult).toBeTruthy();
+
+  orderResult = await rh.limitBuyCrypto({
+    currencyPrice: fakeAskPrice,
+    currencyId: id,
+    orderValue: fakeOrderValue
+  });
+  expect(orderResult).toBeTruthy();
+
+  orderResult = await rh.limitBuyCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue
+  });
+  expect(orderResult).toBeFalsy();
+
+  orderResult = await rh.limitBuyCrypto(null);
+  expect(orderResult).toBeFalsy();
+});
+
+// limitSellCrypto
+test('limitSellCrypto - should sell crypto currency based on simplified options', async () => {
+  const symbol = fakeCurrencyPairs[0].asset_currency.code;
+  const id = fakeCurrencyPairs[0].id;
+  mock = new MockAdapter(axios);
+  mock.onGet(baseURL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ url: fakeUrl }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ACCOUNTS_URL).reply(200, { results: [{ id: fakeId }] })
+      .onGet(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.CURRENCY_PAIRS_URL).reply(200, { results: fakeCurrencyPairs })
+      .onPost(rhConfig.CURRENCY_PAIRS_BASE_URL + rhConfig.ORDERS_URL).reply(200, fakeOrderCryptoResult);
+
+  const rh = new RH({
+      access_token: fakeToken
+  });
+  await sleep(1);
+
+  expect(rh.access_token).toBe(fakeToken);
+  expect(rh.account).toBe(fakeUrl);
+  expect(rh.account_id).toBe(fakeId);
+  
+  let orderResult = await rh.limitSellCrypto({
+    currencyPrice: fakeAskPrice,
+    symbol,
+    quantity: fakeQuantity,
+  });
+  expect(orderResult).toBeTruthy();
+
+  orderResult = await rh.limitSellCrypto({
+    currencyPrice: fakeAskPrice,
+    currencyId: id,
+    orderValue: fakeOrderValue
+  });
+  expect(orderResult).toBeTruthy();
+
+  orderResult = await rh.limitSellCrypto({
+    currencyId: id,
+    orderValue: fakeOrderValue
+  });
+  expect(orderResult).toBeFalsy();
+
+  orderResult = await rh.limitSellCrypto(null);
+  expect(orderResult).toBeFalsy();
+});
