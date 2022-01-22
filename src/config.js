@@ -47,6 +47,7 @@ module.exports = {
     ORDER_CRYPTO_INVALID_OPTIONS: 'Order crypto did not receive valid options.',
     ORDER_CRYPTO_INVALID_ID: 'Order crypto did not receive a valid currency id.',
     ORDER_CRYPTO_GENERIC_FAILURE_RESPONSE: 'Order crypto request failed.',
+    LIMIT_ORDER_CRYPTO_INVALID_OPTIONS: 'Order crypto did not receive valid options.',
     GET_ACCOUNT_DETAILS_MALFORMED_RESPONSE: 'Get account details response returned malformed data object.',
     GET_ACCOUNT_DETAILS_GENERIC_FAILURE_RESPONSE: 'Get account details request failed.'
 }

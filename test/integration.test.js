@@ -18,9 +18,10 @@ test.skip('Testing the rh api', async () => {
         console.log('BTC ID: ', currencyId);
         // const options = {
         //     currencyId,
-        //     orderValue: 0.10
+        //     orderValue: 0.10,
+        //     currencyPrice: '100000.00',
         // }
-        // const orderResult = await rh.marketBuyCrypto(options);
+        // const orderResult = await rh.limitBuyCrypto(options);
         // console.log('ORDER RESULT: ', orderResult);
     } catch (e) {
         console.error(JSON.stringify(e));
